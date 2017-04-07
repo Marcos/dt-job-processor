@@ -8,7 +8,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.BlockingQueue;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,7 +29,7 @@ public class JobExecutorTest {
 	private ExecutorServiceWrapper executor;
 
 	@Mock
-	private ConcurrentLinkedQueue<Job> queue;
+	private BlockingQueue<Job> queue;
 
 	@Mock
 	private ReflectionsWrapper reflectionsWrapper;
@@ -76,23 +76,19 @@ public class JobExecutorTest {
 
 	@Test
 	public void run() throws Exception {
-		when(queue.iterator()).thenReturn(iteratorMock);
-		when(iteratorMock.hasNext()).thenReturn(true).thenReturn(false);
-		when(iteratorMock.next()).thenReturn(jobMock);
+		when(queue.take()).thenReturn(jobMock);
 		jobExecutor.run();
 		verify(executor).submit(org.mockito.Matchers.any(Runnable.class));
-		verify(iteratorMock).remove();
+		verify(queue).take();
 	}
 
 	@Test
 	public void runWhenJobIsNull() throws Exception {
-		when(queue.iterator()).thenReturn(iteratorMock);
-		when(iteratorMock.hasNext()).thenReturn(true).thenReturn(false);
-		when(iteratorMock.next()).thenReturn(null);
+		when(queue.take()).thenReturn(null);
 		doThrow(NullPointerException.class).when(executor).submit(org.mockito.Matchers.any(Runnable.class));
 		jobExecutor.run();
 		verify(executor, never()).submit(org.mockito.Matchers.any(Runnable.class));
-		verify(iteratorMock).remove();
+		verify(queue).take();
 	}
 
 	@Test

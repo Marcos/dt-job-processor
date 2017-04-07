@@ -1,9 +1,9 @@
 package io.datapath.job;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -20,9 +20,9 @@ public class JobExecutor {
 
 	private ExecutorServiceWrapper executor = new ExecutorServiceWrapper(5);
 
-	private ConcurrentLinkedQueue<Job> queue = new ConcurrentLinkedQueue<>();
+	private BlockingQueue<Job> queue = new LinkedBlockingQueue<>();
 
-	public JobExecutor(boolean start, ExecutorServiceWrapper executor, ConcurrentLinkedQueue<Job> queue,
+	public JobExecutor(boolean start, ExecutorServiceWrapper executor, BlockingQueue<Job> queue,
 			ReflectionsWrapper reflectionsWrapper) {
 		this.executor = executor;
 		this.queue = queue;
@@ -56,19 +56,18 @@ public class JobExecutor {
 		executor.createNewExecutorService(size);
 	}
 
-	protected void run() {
-		Iterator<Job> iterator = queue.iterator();
-		while (iterator.hasNext()) {
-			Job job = iterator.next();
-			runJob(job);
-			iterator.remove();
+	protected void run()  {
+		try {
+			runJob(queue.take());
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 
 	private void start() {
 		new Thread(() -> {
 			while (true)
-				run();
+					run();
 		}).start();
 	}
 

@@ -56,7 +56,7 @@ public class JobExecutorTest {
 		when(jobs.get("jobName")).thenReturn(jobClassMock);
 		when(jobClassMock.newInstance()).thenReturn(jobMock);
 		jobExecutor.addToQueue("jobName");
-		verify(queue).add(jobMock);
+		verify(queue).put(jobMock);
 	}
 
 	@Test

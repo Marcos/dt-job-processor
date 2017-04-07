@@ -45,7 +45,7 @@ public class JobExecutor {
 		try {
 			ClassWrapper jobClass = jobs.get(jobExecutor);
 			Job instance = jobClass.newInstance();
-			queue.add(instance);
+			queue.put(instance);
 		} catch (Exception e) {
 			throw new JobNotFoundException(e);
 		}
